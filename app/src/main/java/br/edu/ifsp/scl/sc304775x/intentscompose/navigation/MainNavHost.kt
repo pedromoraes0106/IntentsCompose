@@ -1,45 +1,48 @@
 package br.edu.ifsp.scl.sc304775x.intentscompose.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import br.edu.ifsp.scl.sc304775x.intentscompose.MainViewModel
+import androidx.navigation.navArgument
 import br.edu.ifsp.scl.sc304775x.intentscompose.ui.composable.screen.HomeScreen
 import br.edu.ifsp.scl.sc304775x.intentscompose.ui.composable.screen.AddWordScreen
 
 @Composable
 fun MainNavHost(
     navHostController: NavHostController,
-    modifier: Modifier,
-    mainViewModel: MainViewModel
+    modifier: Modifier
 ) {
-    val parameter by mainViewModel.parameterState.collectAsStateWithLifecycle()
-
     NavHost(
         navController = navHostController,
-        startDestination = Screen.HomeScreen.route
+        startDestination = Screen.HomeScreen.route,
+        modifier = modifier
     ) {
         composable(route = Screen.HomeScreen.route) {
             HomeScreen(
-                receivedParameter = parameter,
-                modifier = modifier,
-                onAddWord = {
-                    navHostController.navigate(Screen.AddWordScreeen.route)
+                navController = navHostController,
+                onAddWord = { currentText ->
+                    navHostController.navigate("add_word_screen?currentText=$currentText")
                 }
             )
         }
-        composable(route = Screen.AddWordScreeen.route) {
+        composable(
+            route = Screen.AddWordScreen.route,
+            arguments = listOf(navArgument("currentText") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val currentText = backStackEntry.arguments?.getString("currentText") ?: ""
+            
             AddWordScreen(
-                receivedParameter = parameter,
-                modifier = modifier,
-                onSave = mainViewModel::updateParameter
-            ) {
-                navHostController.popBackStack()
-            }
+                currentText = currentText,
+                onConcatenate = { word ->
+                    navHostController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("newWord", word)
+                    navHostController.popBackStack()
+                }
+            )
         }
     }
 }

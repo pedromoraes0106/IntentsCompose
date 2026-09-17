@@ -1,62 +1,77 @@
 package br.edu.ifsp.scl.sc304775x.intentscompose.ui.composable.screen
 
-import android.content.res.Configuration.UI_MODE_NIGHT_NO
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.Surface
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import br.edu.ifsp.scl.sc304775x.intentscompose.ui.theme.NavigationIntentTheme
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 
 @Composable
 fun HomeScreen(
-    receivedParameter: String,
-    modifier: Modifier,
-    onAddWord: () -> Unit
+    navController: NavController,
+    onAddWord: (String) -> Unit
 ) {
-    val parameter by remember { mutableStateOf(receivedParameter) }
+    var accumulatedString by rememberSaveable { mutableStateOf("") }
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val newWord = savedStateHandle?.remove<String>("newWord") ?: ""
+
+    if (newWord.isNotEmpty()) {
+        accumulatedString = if (accumulatedString.isEmpty()) {
+            newWord
+        } else {
+            "$accumulatedString $newWord"
+        }
+    }
 
     Column(
-        modifier = modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Text(text = parameter)
+        OutlinedTextField(
+            value = accumulatedString,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("String Atual") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onAddWord
+            onClick = {
+                onAddWord(accumulatedString)
+            },
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text("Adicionar palavra")
         }
-    }
-}
 
+        Spacer(modifier = Modifier.height(8.dp))
 
-@Preview(
-    name = "Light Mode",
-    showBackground = true,
-    uiMode = UI_MODE_NIGHT_NO
-)
-@Preview(
-    name = "Dark Mode",
-    showBackground = true,
-    uiMode = UI_MODE_NIGHT_YES
-)
-@Composable
-fun HomeScreenPreview() {
-    NavigationIntentTheme {
-        Surface {
-            HomeScreen(
-                receivedParameter = "",
-                modifier = Modifier,
-                {}
-            )
+        Button(
+            onClick = {
+                accumulatedString = ""
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Reiniciar")
         }
     }
 }

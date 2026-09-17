@@ -1,6 +1,6 @@
 package br.edu.ifsp.scl.sc304775x.intentscompose.navigation
 
 sealed class Screen(val route: String) {
-    object HomeScreen: Screen("home_screen")
-    object AddWordScreeen: Screen("add_screen")
+    data object HomeScreen : Screen("home_screen")
+    data object AddWordScreen : Screen("add_word_screen?currentText={currentText}")
 }
